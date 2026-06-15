@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react'
 import Api from './Api.js'
 import { useNavigate } from 'react-router-dom'
 import Skeleton from '../components/Skeleton'
+import Pagination from '../components/Pagination'
 
 const UsersList = () => {
     const [users, setUsers] = useState([])
     const [loading, setLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState('')
+    const [currentPage, setCurrentPage] = useState(1)
+    const [itemsPerPage, setItemsPerPage] = useState(10)
     const navigate = useNavigate()
 
     const fetchUsers = async () => {
@@ -37,12 +40,21 @@ const UsersList = () => {
         fetchUsers()
     }, [])
 
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [searchQuery])
+
     const filteredUsers = users.filter(u => {
         const query = searchQuery.toLowerCase();
         return String(u.name || '').toLowerCase().includes(query) || 
                String(u.email || '').toLowerCase().includes(query) || 
                String(u.phone || '').toLowerCase().includes(query);
     });
+
+    const paginatedUsers = filteredUsers.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
     return (
         <div className="max-w-5xl w-full mx-auto bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] transition-colors duration-200">
@@ -98,8 +110,8 @@ const UsersList = () => {
                                     <td className="py-4 px-5 text-right"><Skeleton variant="circular" width={24} height={24} className="ml-auto inline-block" /></td>
                                 </tr>
                             ))
-                        ) : filteredUsers.length > 0 ? (
-                            filteredUsers.map((user, idx) => (
+                        ) : paginatedUsers.length > 0 ? (
+                            paginatedUsers.map((user, idx) => (
                                 <tr key={user._id || idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
                                     <td className="py-4 px-5 text-sm font-semibold text-slate-800 dark:text-slate-200">{user.name}</td>
                                     <td className="py-4 px-5 text-sm text-slate-600 dark:text-slate-400">{user.email}</td>
@@ -138,6 +150,14 @@ const UsersList = () => {
                     </tbody>
                 </table>
             </div>
+
+            <Pagination 
+                currentPage={currentPage}
+                totalItems={filteredUsers.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+                onItemsPerPageChange={setItemsPerPage}
+            />
         </div>
     )
 }

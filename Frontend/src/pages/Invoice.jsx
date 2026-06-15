@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Api from "./Api.js";
 import Skeleton from '../components/Skeleton';
+import Pagination from '../components/Pagination';
 
 const Invoice = () => {
     const [invoices, setInvoices] = useState([])
@@ -8,6 +9,8 @@ const Invoice = () => {
     const [showForm, setShowForm] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
     const [filterStatus, setFilterStatus] = useState('')
+    const [currentPage, setCurrentPage] = useState(1)
+    const [itemsPerPage, setItemsPerPage] = useState(10)
     const [form, setForm] = useState({
         client:'',
         number:'',
@@ -38,6 +41,10 @@ const Invoice = () => {
     useEffect(() => {
         fetchInvoices()
     }, [])
+
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [searchQuery, filterStatus])
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -181,13 +188,18 @@ const Invoice = () => {
         return matchesSearch && matchesFilter;
     })
 
+    const paginatedInvoices = filteredInvoices.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
     return (
         <>
-            <div className="max-w-6xl w-full mx-auto bg-white p-8 rounded-2xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+            <div className="max-w-6xl w-full mx-auto bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] transition-colors duration-200">
                 <div className="flex justify-between items-center mb-6">
                     <div>
-                        <h2 className="text-xl font-bold text-slate-900">Invoices</h2>
-                        <p className="text-xs text-slate-400 mt-1">Manage and track all generated client invoices.</p>
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Invoices</h2>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Manage and track all generated client invoices.</p>
                     </div>
                     <button 
                         onClick={() => setShowForm(true)} 
@@ -200,21 +212,21 @@ const Invoice = () => {
                 <div className="flex flex-col sm:flex-row gap-4 mb-6">
                     <div className="relative flex-1">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            <svg className="w-4 h-4 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                         </div>
                         <input 
                             type="text" 
                             placeholder="Search by client or invoice number..." 
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-200"
+                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white dark:focus:bg-slate-900 transition-all duration-200"
                         />
                     </div>
                     <div className="sm:w-64">
                         <select 
                             value={filterStatus}
                             onChange={(e) => setFilterStatus(e.target.value)}
-                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-200 cursor-pointer"
+                            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white dark:focus:bg-slate-900 transition-all duration-200 cursor-pointer"
                         >
                             <option value="">All Statuses</option>
                             <option value="draft">Draft</option>
@@ -223,22 +235,22 @@ const Invoice = () => {
                     </div>
                 </div>
                 
-                <div className="overflow-x-auto rounded-xl border border-slate-100">
+                <div className="overflow-x-auto rounded-xl border border-slate-100 dark:border-slate-800 transition-colors duration-200">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-slate-50 border-b border-slate-100">
-                                <th className="py-3.5 px-5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Invoice #</th>
-                                <th className="py-3.5 px-5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Client</th>
-                                <th className="py-3.5 px-5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
-                                <th className="py-3.5 px-5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Total</th>
-                                <th className="py-3.5 px-5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                                <th className="py-3.5 px-5 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+                            <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800 transition-colors">
+                                <th className="py-3.5 px-5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Invoice #</th>
+                                <th className="py-3.5 px-5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Client</th>
+                                <th className="py-3.5 px-5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Date</th>
+                                <th className="py-3.5 px-5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total</th>
+                                <th className="py-3.5 px-5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
+                                <th className="py-3.5 px-5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800 transition-colors">
                             {loading ? (
                                 [...Array(5)].map((_, i) => (
-                                    <tr key={i} className="hover:bg-slate-50/20 transition-colors">
+                                    <tr key={i} className="hover:bg-slate-50/20 dark:hover:bg-slate-800/10 transition-colors">
                                         <td className="py-4 px-5"><Skeleton variant="text" width="40%" className="h-4" /></td>
                                         <td className="py-4 px-5"><Skeleton variant="text" width="70%" className="h-4" /></td>
                                         <td className="py-4 px-5"><Skeleton variant="text" width="50%" className="h-4" /></td>
@@ -247,16 +259,16 @@ const Invoice = () => {
                                         <td className="py-4 px-5 text-right"><Skeleton variant="rounded" width={80} className="h-8 ml-auto inline-block" /></td>
                                     </tr>
                                 ))
-                            ) : filteredInvoices.length > 0 ? (
-                                filteredInvoices.map((inv, idx) => (
-                                    <tr key={inv._id || idx} className="hover:bg-slate-50/50 transition-colors">
-                                        <td className="py-4 px-5 text-sm font-semibold text-slate-800">#{inv.Number}</td>
-                                        <td className="py-4 px-5 text-sm text-slate-600">{inv.client}</td>
-                                        <td className="py-4 px-5 text-sm text-slate-600">{inv.Date ? new Date(inv.Date).toLocaleDateString() : 'N/A'}</td>
-                                        <td className="py-4 px-5 text-sm font-semibold text-slate-900">${inv.total}</td>
+                            ) : paginatedInvoices.length > 0 ? (
+                                paginatedInvoices.map((inv, idx) => (
+                                    <tr key={inv._id || idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+                                        <td className="py-4 px-5 text-sm font-semibold text-slate-800 dark:text-slate-200">#{inv.Number}</td>
+                                        <td className="py-4 px-5 text-sm text-slate-600 dark:text-slate-400">{inv.client}</td>
+                                        <td className="py-4 px-5 text-sm text-slate-600 dark:text-slate-400">{inv.Date ? new Date(inv.Date).toLocaleDateString() : 'N/A'}</td>
+                                        <td className="py-4 px-5 text-sm font-semibold text-slate-900 dark:text-slate-100">${inv.total}</td>
                                         <td className="py-4 px-5 text-sm">
                                             <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                                                inv.status === 'final' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                                                inv.status === 'final' ? 'bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400' : 'bg-orange-100 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400'
                                             }`}>
                                                 {inv.status ? inv.status.charAt(0).toUpperCase() + inv.status.slice(1) : 'Draft'}
                                             </span>
@@ -264,7 +276,7 @@ const Invoice = () => {
                                         <td className="py-4 px-5 text-sm text-right">
                                             <button 
                                                 onClick={() => handlePrint(inv)}
-                                                className="text-indigo-600 hover:text-indigo-800 font-medium text-xs bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1.5"
+                                                className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium text-xs bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1.5"
                                             >
                                                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                                                 Print/PDF
@@ -276,11 +288,11 @@ const Invoice = () => {
                                 <tr>
                                     <td colSpan="6" className="py-12 text-center">
                                         <div className="flex flex-col items-center justify-center">
-                                            <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-3 text-slate-400">
+                                            <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3 text-slate-400 dark:text-slate-500">
                                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                             </div>
-                                            <p className="text-slate-500 text-sm font-medium">No invoices found.</p>
-                                            <p className="text-slate-400 text-xs mt-1">Click "Generate New Invoice" to create one.</p>
+                                            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">No invoices found.</p>
+                                            <p className="text-slate-400 dark:text-slate-555 text-xs mt-1">Click "Generate New Invoice" to create one.</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -288,161 +300,169 @@ const Invoice = () => {
                         </tbody>
                     </table>
                 </div>
+
+                <Pagination 
+                    currentPage={currentPage}
+                    totalItems={filteredInvoices.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                />
             </div>
 
             {showForm && (
                 <div className="fixed inset-0 z-50 flex justify-end">
                     <div 
-                        className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm animate-fadeIn"
+                        className="absolute inset-0 bg-slate-900/20 dark:bg-slate-950/45 backdrop-blur-sm animate-fadeIn"
                         onClick={() => setShowForm(false)}
                     ></div>
-                    <div className="relative w-full max-w-2xl bg-white h-full shadow-2xl flex flex-col overflow-y-auto animate-slideIn">
+                    <div className="relative w-full max-w-2xl bg-white dark:bg-slate-900 h-full shadow-2xl flex flex-col overflow-y-auto animate-slideIn transition-colors duration-200">
                         <div className="p-8 flex-1">
                             <div className="mb-6 flex justify-between items-start">
                                 <div>
-                                    <h2 className="text-xl font-bold text-slate-900">Generate Invoice</h2>
-                                    <p className="text-xs text-slate-400 mt-1">Configure and generate a client billing invoice details.</p>
+                                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">Generate Invoice</h2>
+                                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Configure and generate a client billing invoice details.</p>
                                 </div>
                                 <button 
                                     onClick={() => setShowForm(false)} 
-                                    className="text-slate-400 hover:text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+                                    className="text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
                                 >
                                     ✕
                                 </button>
                             </div>
-                            <div className="border-b border-slate-100 mb-6"></div>
+                            <div className="border-b border-slate-100 dark:border-slate-800 mb-6"></div>
                             <form onSubmit={handleSubmit} className="space-y-5">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-4">
                                     <div>
-                                        <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Customer ID</label>
+                                        <label className="block text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Customer ID</label>
                                         <input 
                                         type='text'
                                         name='client'
                                         value={form.client}
                                         placeholder='Customer id'
                                         onChange={handleChange}  
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-200"
+                                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white dark:focus:bg-slate-900 transition-all duration-200"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Invoice Number</label>
+                                        <label className="block text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Invoice Number</label>
                                         <input 
                                         type="number"
                                         name="number"
                                         value={form.number}
                                         placeholder='number'
                                         onChange={handleChange}    
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-200"
+                                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white dark:focus:bg-slate-900 transition-all duration-200"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Year</label>
+                                        <label className="block text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Year</label>
                                         <input 
                                         type="number"
                                         name="year"
                                         value={form.year}
                                         placeholder='Year'
                                         onChange={handleChange}    
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-200"
+                                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white dark:focus:bg-slate-900 transition-all duration-200"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Status</label>
+                                        <label className="block text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Status</label>
                                         <select
                                         name="status"
                                         value={form.status}
                                         onChange={handleChange}    
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-200"
+                                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white dark:focus:bg-slate-900 transition-all duration-200 cursor-pointer"
                                         >
                                             <option value="draft">Draft</option>
                                             <option value="final">Final</option>
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Issue Date</label>
+                                        <label className="block text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Issue Date</label>
                                         <input type="date"
                                         name="date"
                                         value={form.date}
                                         placeholder='Date'
                                         onChange={handleChange}    
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-200"
+                                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white dark:focus:bg-slate-900 transition-all duration-200"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Expiry Date</label>
+                                        <label className="block text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Expiry Date</label>
                                         <input
                                         type="date"
                                         name='expire_date'
                                         value={form.expire_date}
                                         placeholder='Expire Date'
                                         onChange={handleChange}    
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-200"
+                                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white dark:focus:bg-slate-900 transition-all duration-200"
                                         />
                                     </div>
                                     <div className="sm:col-span-2">
-                                        <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Note</label>
+                                        <label className="block text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Note</label>
                                         <input
                                         type='text'
                                         name='note'
                                         value={form.note}
                                         placeholder='Note'
                                         onChange={handleChange}    
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-200"
+                                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-555 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white dark:focus:bg-slate-900 transition-all duration-200"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Item Name</label>
+                                        <label className="block text-[11px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-wider mb-2">Item Name</label>
                                         <input 
                                         type='text'
                                         name='item'
                                         value={form.item}
                                         placeholder='Item Name'
                                         onChange={handleChange}    
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-200"
+                                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white dark:focus:bg-slate-900 transition-all duration-200"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Item Description</label>
+                                        <label className="block text-[11px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-wider mb-2">Item Description</label>
                                         <input
                                         type='text'
                                         name='description'
                                         value={form.description}
                                         placeholder='Description Name'
                                         onChange={handleChange}    
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-200"
+                                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white dark:focus:bg-slate-900 transition-all duration-200"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Quantity</label>
+                                        <label className="block text-[11px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-wider mb-2">Quantity</label>
                                         <input 
                                         type='number'
                                         name='quantity'
                                         value={form.quantity}
                                         placeholder='Quantity'
                                         onChange={handleChange}    
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-200"
+                                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white dark:focus:bg-slate-900 transition-all duration-200"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Price</label>
+                                        <label className="block text-[11px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-wider mb-2">Price</label>
                                         <input 
                                         type='number'
                                         name='price'
                                         value={form.price}
                                         placeholder='Price'
                                         onChange={handleChange}    
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-200"
+                                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white dark:focus:bg-slate-900 transition-all duration-200"
                                         />
                                     </div>
                                     <div className="sm:col-span-2">
-                                        <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Total Amount</label>
+                                        <label className="block text-[11px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-wider mb-2">Total Amount</label>
                                         <input
                                         type='number'
                                         name='total'
                                         value={form.total}
                                         placeholder='Total'
                                         onChange={handleChange}    
-                                        className="w-full px-4 py-2.5 bg-indigo-50/20 border border-indigo-150 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-200 font-semibold"
+                                        className="w-full px-4 py-2.5 bg-indigo-50/20 dark:bg-indigo-950/20 border border-indigo-150 dark:border-indigo-950 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white dark:focus:bg-slate-900 transition-all duration-200 font-semibold"
                                         />
                                     </div>
                                 </div>

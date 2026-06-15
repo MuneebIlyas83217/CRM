@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import Api from './Api.js'
 import Skeleton from '../components/Skeleton'
+import Pagination from '../components/Pagination'
 
 const CustomerList = () => {
     const [customers, setCustomers] = useState([])
@@ -8,6 +9,8 @@ const CustomerList = () => {
     const [showForm, setShowForm] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
     const [filterCountry, setFilterCountry] = useState('')
+    const [currentPage, setCurrentPage] = useState(1)
+    const [itemsPerPage, setItemsPerPage] = useState(10)
     const [form, setform] = useState({
         name: '',
         email: '',
@@ -31,6 +34,10 @@ const CustomerList = () => {
     useEffect(() => {
         fetchCustomers()
     }, [])
+
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [searchQuery, filterCountry])
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -69,6 +76,11 @@ const CustomerList = () => {
     });
 
     const uniqueCountries = [...new Set(customers.map(c => c.country).filter(Boolean))];
+
+    const paginatedCustomers = filteredCustomers.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
     return (
         <>
@@ -135,8 +147,8 @@ const CustomerList = () => {
                                         <td className="py-4 px-5"><Skeleton variant="text" width="40%" className="h-4" /></td>
                                     </tr>
                                 ))
-                            ) : filteredCustomers.length > 0 ? (
-                                filteredCustomers.map((customer, idx) => (
+                            ) : paginatedCustomers.length > 0 ? (
+                                paginatedCustomers.map((customer, idx) => (
                                     <tr key={customer._id || idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
                                         <td className="py-4 px-5 text-sm font-semibold text-slate-800 dark:text-slate-200">{customer.name}</td>
                                         <td className="py-4 px-5 text-sm text-slate-600 dark:text-slate-400">{customer.email}</td>
@@ -161,6 +173,14 @@ const CustomerList = () => {
                         </tbody>
                     </table>
                 </div>
+
+                <Pagination 
+                    currentPage={currentPage}
+                    totalItems={filteredCustomers.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                />
             </div>
 
             {/* Drawer */}

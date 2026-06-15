@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import Api from './Api.js'
+import Pagination from '../components/Pagination'
 
 const Tax=()=>{
     const [taxes, setTaxes] = useState([])
     const [showForm, setShowForm] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
     const [filterEnabled, setFilterEnabled] = useState('')
+    const [currentPage, setCurrentPage] = useState(1)
+    const [itemsPerPage, setItemsPerPage] = useState(10)
     const [form, setForm] = useState({
         name: "",
         value: "",
@@ -25,6 +28,10 @@ const Tax=()=>{
     useEffect(() => {
         fetchTaxes()
     }, [])
+
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [searchQuery, filterEnabled])
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -64,6 +71,11 @@ const Tax=()=>{
         const matchesFilter = filterEnabled === '' ? true : (filterEnabled === 'true' ? t.enabled === true : t.enabled === false);
         return matchesSearch && matchesFilter;
     })
+
+    const paginatedTaxes = filteredTaxes.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
     return (
         <>
@@ -118,8 +130,8 @@ const Tax=()=>{
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800 transition-colors">
-                            {filteredTaxes.length > 0 ? (
-                                filteredTaxes.map((taxItem, idx) => (
+                            {paginatedTaxes.length > 0 ? (
+                                paginatedTaxes.map((taxItem, idx) => (
                                     <tr key={taxItem._id || idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
                                         <td className="py-4 px-5 text-sm font-semibold text-slate-800 dark:text-slate-200">{taxItem.name}</td>
                                         <td className="py-4 px-5 text-sm text-slate-600 dark:text-slate-400">{taxItem.value}%</td>
@@ -151,6 +163,14 @@ const Tax=()=>{
                         </tbody>
                     </table>
                 </div>
+
+                <Pagination 
+                    currentPage={currentPage}
+                    totalItems={filteredTaxes.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                />
             </div>
 
             {/* Drawer */}

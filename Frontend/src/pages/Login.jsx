@@ -25,8 +25,8 @@ const Login = () => {
                 localStorage.setItem("token", res.data.token)
             }
             
-            // Navigate to main dashboard (customers)
-            navigate("/customers")
+            // Navigate to main dashboard
+            navigate("/dashboard")
         } catch (error) {
             console.error("Login error:", error)
             setError(error.response?.data?.message || "Login failed. Please check your credentials.")

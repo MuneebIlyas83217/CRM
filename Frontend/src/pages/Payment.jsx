@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import Api from './Api.js'
 import Skeleton from '../components/Skeleton'
+import Pagination from '../components/Pagination'
 
 const Payment = () => {
     const [payments, setPayments] = useState([])
@@ -8,6 +9,8 @@ const Payment = () => {
     const [searchQuery, setSearchQuery] = useState('')
     const [filterEnabled, setFilterEnabled] = useState('')
     const [showForm, setShowForm] = useState(false)
+    const [currentPage, setCurrentPage] = useState(1)
+    const [itemsPerPage, setItemsPerPage] = useState(10)
     const [form, setForm] = useState({
         payment_mode: '',
         description: '',
@@ -30,6 +33,10 @@ const Payment = () => {
     useEffect(() => {
         fetchPayments()
     }, [])
+
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [searchQuery, filterEnabled])
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -78,6 +85,11 @@ const Payment = () => {
         
         return matchSearch && matchFilter;
     })
+
+    const paginatedPayments = filteredPayments.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
     return (
         <>
             <div className="max-w-5xl w-full mx-auto bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.02)] transition-colors duration-200">
@@ -140,8 +152,8 @@ const Payment = () => {
                                         <td className="py-4 px-5"><Skeleton variant="rounded" width={45} className="h-6" /></td>
                                     </tr>
                                 ))
-                            ) : filteredPayments.length > 0 ? (
-                                filteredPayments.map((payment, idx) => (
+                            ) : paginatedPayments.length > 0 ? (
+                                paginatedPayments.map((payment, idx) => (
                                     <tr key={payment._id || idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
                                         <td className="py-4 px-5 text-sm font-semibold text-slate-800 dark:text-slate-200">{payment.payment_mode || payment.payment_Mode}</td>
                                         <td className="py-4 px-5 text-sm text-slate-600 dark:text-slate-400">{payment.description}</td>
@@ -173,6 +185,14 @@ const Payment = () => {
                         </tbody>
                     </table>
                 </div>
+
+                <Pagination 
+                    currentPage={currentPage}
+                    totalItems={filteredPayments.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                />
             </div>
 
             {/* Drawer */}

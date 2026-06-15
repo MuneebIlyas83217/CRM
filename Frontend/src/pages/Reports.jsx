@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import Api from './Api.js'
+import Pagination from '../components/Pagination'
 
 const Reports = () => {
     const [invoices, setInvoices] = useState([])
     const [downloadLimit, setDownloadLimit] = useState('all') // 'all', '10', '50', '100'
     const [loading, setLoading] = useState(false)
+    const [currentPage, setCurrentPage] = useState(1)
+    const [itemsPerPage, setItemsPerPage] = useState(10)
 
     const fetchInvoices = async () => {
         try {
@@ -21,6 +24,10 @@ const Reports = () => {
         fetchInvoices()
     }, [])
 
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [downloadLimit])
+
     // Get the subset of invoices based on the filter
     const getInvoicesToDownload = () => {
         if (downloadLimit === 'all') return invoices;
@@ -28,6 +35,11 @@ const Reports = () => {
     }
 
     const invoicesToDownload = getInvoicesToDownload();
+
+    const paginatedInvoices = invoicesToDownload.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
     const handleBulkPrint = () => {
         if (invoicesToDownload.length === 0) {
@@ -171,8 +183,8 @@ const Reports = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800 transition-colors">
-                        {invoicesToDownload.length > 0 ? (
-                            invoicesToDownload.map((inv, idx) => (
+                        {paginatedInvoices.length > 0 ? (
+                            paginatedInvoices.map((inv, idx) => (
                                 <tr key={inv._id || idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
                                     <td className="py-4 px-5 text-sm font-semibold text-slate-800 dark:text-slate-200">#{inv.Number || inv.number}</td>
                                     <td className="py-4 px-5 text-sm text-slate-600 dark:text-slate-400">{inv.client}</td>
@@ -202,12 +214,14 @@ const Reports = () => {
                     </tbody>
                 </table>
             </div>
-            
-            {invoicesToDownload.length > 0 && (
-                <div className="mt-4 text-center text-xs text-slate-400 dark:text-slate-500">
-                    Showing {invoicesToDownload.length} of {invoices.length} total invoices
-                </div>
-            )}
+
+            <Pagination 
+                currentPage={currentPage}
+                totalItems={invoicesToDownload.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+                onItemsPerPageChange={setItemsPerPage}
+            />
         </div>
     )
 }
